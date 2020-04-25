@@ -22,6 +22,9 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include <irrlicht.h>
+#include <iostream>
+#include <fstream>
+
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -52,13 +55,13 @@ int main(int argc, char* argv[]) {
     // Simulation parameters
     double gravity = -9.81;
     double time_step = 0.00001;
-    double out_step = 2000 * time_step;
+    double out_step = 4000 * time_step;
 
     // Parameters for the falling ball
     int ballId = 100;
     double radius = 1;
     double mass = 1000;
-    ChVector<> pos(0, 5, 0);
+    ChVector<> pos(0, 2, 0);
     ChQuaternion<> rot(1, 0, 0, 0);
     ChVector<> init_vel(0, 0, 0);
 
@@ -168,14 +171,22 @@ int main(int argc, char* argv[]) {
                              ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
                              video::SColor(255, 80, 100, 100), true);
 
+	std::ofstream myFile;
+  	myFile.open("../trainingData/trainingData.txt");
 
+	// Run the simulation
         while (time < out_time) {
             msystem.DoStepDynamics(time_step);
             time += time_step;
            	
-	     
-	    std::cout << ball->GetPos() << std::endl;
+	    // Print the ball's location
+	    myFile << ball->GetPos() << std::endl;
+	    
+	    // std::cout << ball->GetPos() << std::endl;
 	}
+	
+	myFile.close();
+
         out_time += out_step;
 
         application.EndScene();
