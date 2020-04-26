@@ -43,10 +43,9 @@ with tf.Session() as sess:
         print(i, "loss:", loss.eval(feed_dict) )
 
     x_test = np.linspace(0, 100, 100)
-
     y_test = sess.run(y_pred, {x : x_batch})
     
-    # grad = sess.run(d_loss_dx, {x : [1.0], y: [1.5] } )  
+    grad = sess.run(d_loss_dx, {x : [1.0], y: [1.5] } )  
 
     print("")
     print("The gradient of loss wrt input")
