@@ -6,7 +6,7 @@ I set up project Chrono on my Linux machine and "sketched" out a solution to the
 I could not figure out how to use the Keras API to compute arbitrary derivatives. I need this ability to compute arbitrary derivatives in order to have a model which not only predicts the 3-vector GRF butalso takes the learned mapping and can take derivatives with it. The Keras API is easy to use to build neural networks but is a very high level (and big) API. The lower level Tensorflow API allows you to define mathematical functions in a computational graph. The API then lets you compute derivatives numerically of any node in the graph. It is a little harder to use but this added flexibility is well worth the effort. If I used Keras, it is not clear how to compute the gradients we need. So, I used Tensorflow. 
 
 # Tensorflow Primer
-I have used Keras before to build neural networks but had not used Tensorflow. I spent some time working on getting up to speed on it. It is pretty awesome! I built a simple linear regression on an artificial dataset. The results are below. It builds the computational graph relating input data and their labels and then finds good weights to fit a line to the dataset via gradient descent
+I have used Keras before to build neural networks but had not used Tensorflow. I spent some time working on getting up to speed on it. It is pretty awesome! I built a simple linear regression on an artificial dataset. The results are below. It builds the computational graph (this case only that label = y = (input * w) + b) relating input data and their labels and then finds good weights (w and b) to fit a line to the dataset via gradient descent
 
 ![Linear Classifier](linearClassifier.png)
 
