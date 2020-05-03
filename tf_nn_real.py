@@ -55,53 +55,82 @@ class dataSet:
     def readInData(self):
         
         # Open the file
-        myFile = open("trainingData/trainingData.txt", "r")
+        # myFile = open("trainingData/trainingData.txt", "r")
+        myInputFile = open("sim_data/output_plate_positions_and_velocities.csv")
+        
+        myLabelFile = open("sim_data/output_plate_forces.csv")
 
         # List of all data
         allData = []
         
         # Read in the training data from the txt file
-        line = myFile.readline()
-        lineCount = 1
+        line = myInputFile.readline()
+        lineCount = 0
 
         while line:
-            priorLine = line.split(" ")
-
-            nextInput = np.zeros(3)
+            
+            line = line.split(",")
+            # The data is time, x, dx_dt, y, dy_dy, ...
+            nextInput = np.zeros(6)
             lineCount = lineCount + 1
             # Get rid of spaces in list
             index = 0
-            for i in range(len(priorLine) ):
+            
+            # Ignore data if it isn't a full line - happens when I ctrl c on Chrono
+            if (len(line) >= 7):
+                for i in range(len(line) ):
 
-                if (priorLine[index] == "0\n"):
-                    nextInput[index] = 0.0
-                    index = index + 1
+                    if ( i == 0 ):
+                        # We want to ignore the time value
+                        continue
 
-                elif( priorLine[i] != ""):
-                    nextInput[index] = float(priorLine[i])
-                    index = index + 1
+                    elif (line[i] == "\n"):
+                        continue
+                        # nextInput[index] = 0.0
+                        # index = index + 1
+
+                    elif( line[i] != ""):
+                        # print(line[i])
+                        nextInput[index] = float(line[i])
+                        index = index + 1
         
+            # print(nextInput)
+
             label = np.zeros(3)
 
-            line = myFile.readline()
-            rawLabel = line
-            rawLabel = rawLabel.split(" ")
+            # The label file is t, F1, F2, F3
+            rawLabel = myLabelFile.readline()
+            rawLabel = rawLabel.split(",")
 
             # Get rid of spaces in list
             index = 0
-            for i in range(len(rawLabel) ):
 
-                if (rawLabel[index] == "0\n"):
-                    label[index] = 0.0
-                    index = index + 1
+            # Ignore data if it isn't a full line - happens when I ctrl c on Chrono
+            if (len(rawLabel) >= 3):
+                for i in range(len(rawLabel) ):
+                
+                    if ( i == 0 ):
+                        continue
+                
+                    if (rawLabel[i] == "\n"):
+                        continue
+                        # label[index] = 0.0
+                        # index = index + 1
 
-                elif( rawLabel[i] != ""):
-                    label[index] = float(rawLabel[i])
-                    index = index + 1
+                    elif( rawLabel[i] != ""):
+                        label[index] = float(rawLabel[i])
+                        index = index + 1
 
+            # print(label)
+            
             # def __init__(self, inputData, label):
             allData.append(trainInstance(nextInput, label) )
             
+            # Read in the next line
+            line = myInputFile.readline()
+
+        
+
         print("")
         print("")
         print("There are " + str(lineCount) + " instances in this training set")
