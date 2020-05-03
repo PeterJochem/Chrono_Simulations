@@ -7,10 +7,6 @@ from keras import backend as k
 import matplotlib.pyplot as plt
 
 
-import theano
-import theano.tensor as T
-import keras.backend as K
-
 # Describe this class here
 class trainInstance:
 

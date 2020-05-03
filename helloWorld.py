@@ -1,7 +1,7 @@
 
 
-def myFunction():
+def myFunction(myString):
     #print("")
     #print("Hello World")
     #print("")
-    return "This is the return value"
+    return myString
