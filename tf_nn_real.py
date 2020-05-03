@@ -86,8 +86,6 @@ class dataSet:
 
                     elif (line[i] == "\n"):
                         continue
-                        # nextInput[index] = 0.0
-                        # index = index + 1
 
                     elif( line[i] != ""):
                         # print(line[i])
@@ -114,8 +112,6 @@ class dataSet:
                 
                     if (rawLabel[i] == "\n"):
                         continue
-                        # label[index] = 0.0
-                        # index = index + 1
 
                     elif( rawLabel[i] != ""):
                         label[index] = float(rawLabel[i])
@@ -147,12 +143,12 @@ myDataSet = dataSet()
 # Define the computational graph
 # Inputs are ξ f = [x f , ẋ f , y f , ẏ f , θ f , θ̇ f]
 # The ball dataset is diffrent 
-x = tf.placeholder(tf.float32, shape=(None, 3), name = 'x')
+x = tf.placeholder(tf.float32, shape=(None, 6), name = 'x')
 
 # Outputs are [F x , F y , M z]
 y = tf.placeholder(tf.float32, shape=(None, 3), name = 'y')
 
-W1 = tf.Variable(tf.random_normal([3, 30], stddev = 0.03), name = 'W1')
+W1 = tf.Variable(tf.random_normal([6, 30], stddev = 0.03), name = 'W1')
 b1 = tf.Variable(tf.random_normal([30]), name ='b1')
 
 # and the weights connecting the hidden layer to the output layer
@@ -172,7 +168,7 @@ d_loss_dx = tf.gradients(loss, x)[0]
 print("")
 print("")
 
-optimizer = tf.train.GradientDescentOptimizer(0.0001)
+optimizer = tf.train.GradientDescentOptimizer(0.000001)
 train_op = optimizer.minimize(loss)
 
 
@@ -212,7 +208,7 @@ with tf.Session() as sess:
     print(grad_numerical)
 
     # Feed in a random data point which doesn't belong to part of the dataset fucntion
-    grad_numerical = sess.run(d_loss_dx, {x: [[1.0, 4.0, 8.0]] , y: [[4.0, 500.0, -20.0]] } )
+    grad_numerical = sess.run(d_loss_dx, {x: [[1.0, 4.0, 8.0, 5.0, 1.0, -100.0]] , y: [[4.0, 500.0, -20.0]] } )
     print("")
     print("The gradient of loss wrt a random input vector (ie not from our observed dataset)")
     print(grad_numerical)
@@ -220,7 +216,7 @@ with tf.Session() as sess:
 
 
 plt.plot( np.linspace(0, epochs, epochs), loss_test_array, color = "blue" )
-plt.title( 'Loss Function vs Epoch - Chrono Ball Bouncing Dataset' )
+plt.title( 'Loss Function vs Epoch - Hopping Foot' )
 plt.ylabel( 'Loss' )
 plt.xlabel( 'Epoch' )
 plt.show()

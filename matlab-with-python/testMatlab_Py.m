@@ -1,6 +1,6 @@
 
 pyversion
-pathToSpeech = fileparts('/home/peter/Desktop/SpringQuarter/HoppingRobot/matlab-with-python/helloWorld.py');
+pathToSpeech = fileparts('/home/peter/Desktop/Chrono/chrono/template_project/matlab-with-python/helloWord.py');
 if count(py.sys.path,pathToSpeech) == 0
     insert(py.sys.path,int32(0),pathToSpeech);
 end
