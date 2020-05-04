@@ -15,19 +15,19 @@ b = tf.Variable(np.random.normal(), name = 'b')
 		
 y_pred = tf.add(tf.multiply(w, x), b)
 
-# now let's define the cost function which we are going to train the model on
-# Mean squared error
+# Now let's define the loss function which we are going to train the model on
 loss = tf.reduce_mean(tf.square(y_pred - y))
 
 # Add a gradient to the computational graph
 d_loss_dx = tf.gradients(loss, x)[0]
-
 d_loss_dw = tf.gradients(loss, w)[0]
 
-
+# Choose an optimization algorithm
 optimizer = tf.train.GradientDescentOptimizer(0.0001)
+# Specify which node in the graph to minimize
 train_op = optimizer.minimize(loss)
 
+# Run data and minimze loss
 epochs = 10
 with tf.Session() as sess:
     # Initialize the variables
@@ -48,23 +48,15 @@ with tf.Session() as sess:
     x_test = np.linspace(0, 100, 100)
     y_test = sess.run(y_pred, {x : x_batch})
     
-    grad1 = sess.run(d_loss_dx, {x : [1.0], y: [1005] } )  
-    grad2 = sess.run(d_loss_dx, {x : [x_batch[5]], y: [y_batch[5]] } ) 
-    grad3 =  sess.run(d_loss_dw, {x : x_batch, y: y_batch } )
 
-    print("")
-    print("The gradient of loss wrt input")
-    print(grad1)
-
-    print("")
-    print("The gradient of loss wrt input")
-    print(grad2)
+    # This is a example of how to compute derivatives using the learned model
+    grad =  sess.run(d_loss_dw, {x : x_batch, y: y_batch } )
 
     print("")
     print("The gradient of loss wrt w is ")
-    print(grad3)
+    print(grad)
 
-
+    # Plot the data
     plt.plot( x_test, y_test, color = "red" )
     plt.plot( x_batch, y_batch  )
     plt.ylabel('Prediction' )
