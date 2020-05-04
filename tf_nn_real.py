@@ -168,7 +168,7 @@ d_loss_dx = tf.gradients(loss, x)[0]
 print("")
 print("")
 
-optimizer = tf.train.GradientDescentOptimizer(0.000001)
+optimizer = tf.train.GradientDescentOptimizer(0.00000001)
 train_op = optimizer.minimize(loss)
 
 
@@ -188,7 +188,7 @@ saver = tf.train.Saver()
 
 
 # Train on the training set
-epochs = 100
+epochs = 1000
 with tf.Session() as sess:
 
     # Initialize the variables
