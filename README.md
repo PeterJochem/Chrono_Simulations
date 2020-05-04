@@ -4,6 +4,7 @@ I spent time learning how to use Juntao's simulation of the foot contacting the 
 I also spent time this week learning about how to call Python code from Matlab. I put together a demo of what the final Matlab API might look like. It lets Matlab use a Python Tensorflow neural network. 
 ![alt text](https://github.com/PeterJochem/Chrono_Simulations/blob/master/HoppingNeural.png "Granular Foot GRF")
 
+Minimized the average loss per training example across the entire dataset with gradient descent
 
 # Tensorflow and Automatic Differentiation 
 Tensorflow and most other (if not all) machine learning packages use automatic differentiation to compute derivatives. One could use numerical differentiation but for neural networks this is not practical. Gradient descent methods require the partial derivative of each parameter in the model with respect to the loss. The network could have billions of weights and numerical derivatives would require use to forward propagate in proportion to the number of weights. Numerical derivatives also suffer from more numerical error than automatic differentiation. 
