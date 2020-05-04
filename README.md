@@ -3,7 +3,7 @@ I spent time learning how to use Juntao's simulation of the foot contacting the 
 
 I also spent time this week learning about how to call Python code from Matlab. I put together a demo of what the final Matlab API might look like. It lets Matlab use a Python Tensorflow neural network. It also lets Matlab get the derivates of the output variables with respect to the input variables. 
 
-![alt text]( "Granular Foot GRF")
+![alt text](https://github.com/PeterJochem/Chrono_Simulations/blob/master/HoppingNeural.png "Granular Foot GRF")
 
 
 # Tensorflow and Automatic Differentiation 
