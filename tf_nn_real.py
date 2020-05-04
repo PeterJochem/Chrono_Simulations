@@ -183,11 +183,18 @@ testSet = myDataSet.allInstances[int(0.80 * len(myDataSet.allInstances) ):  ]
 trainInputs, trainLabels = myDataSet.format(trainSet)
 testInputs, testLabels = myDataSet.format(testSet)
 
+# Setup the saving of the network
+saver = tf.train.Saver()
+
+
 # Train on the training set
 epochs = 100
 with tf.Session() as sess:
+
     # Initialize the variables
     sess.run(tf.global_variables_initializer())
+        
+    save_path = saver.save(sess, "myNetworks/myNet.ckpt" )
 
     feed_dict_train = {x: trainInputs, y: trainLabels }
     feed_dict_test = {x: testInputs, y: testLabels }
