@@ -160,15 +160,16 @@ hidden_out = tf.nn.relu(hidden_out)
 
 y_pred = tf.add(tf.matmul(hidden_out, W2), b2)
 
-loss = tf.nn.l2_loss(y_pred - y) # / (len(myDataSet.allInstances))
-# loss = tf.reduce_mean(tf.square(y_pred - y))
+# loss = tf.nn.l2_loss(y_pred - y) # / (len(myDataSet.allInstances))
+loss = tf.reduce_mean(tf.square(y_pred - y))
 
 d_loss_dx = tf.gradients(loss, x)[0]
 
 print("")
 print("")
 
-optimizer = tf.train.GradientDescentOptimizer(0.00000001)
+# 0.00000001
+optimizer = tf.train.GradientDescentOptimizer(0.001)
 train_op = optimizer.minimize(loss)
 
 
