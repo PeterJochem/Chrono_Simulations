@@ -1,5 +1,5 @@
 # Description
-I spent time learning how to use Juntao's simulation of the foot contacting the granular material. I then used the simulation to generate a dataset of pairs of (x, x_dt, y, y_dt, z, z_dt) and the GRF (F_x, F_y, F_z).
+I spent time learning how to use Juntao's simulation of the foot contacting the granular material. I then used the simulation to generate a dataset of pairs of (x, x_dt, y, y_dt, z, z_dt) and the GRF (F_x, F_y, F_z). I naively ran the dataset with the neural network and it learned a good representation of the fucntion. I then looked at the csv files and almost all of the data is in a non-collision state. This means the network basically learned to always predict a [0, 0 ,0] GRF. I made some changes to the simulation code and (as of Monday morning) creating a dataset of only when the foot and granular material are in contact.
 I also spent time this week learning about how to call Python code from Matlab. I put together a demo of what the final Matlab API might look like. It lets Matlab use a Python Tensorflow neural network. It also lets Matlab get the derivates of the output variables with respect to the input variables. 
 
 # Tensorflow and Automatic Differentiation 
