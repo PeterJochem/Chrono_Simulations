@@ -4,7 +4,9 @@ I spent this week learning about how to call Python code from Matlab. I put toge
 # Tensorflow and Automatic Differentiation 
 Tensorflow and most other (if not all) machine learning packages use automatic differentiation to compute derivatives. One could use numerical differentiation but for neural networks this is not practical. Gradient descent methods require the partial derivative of each parameter in the model with respect to the loss. The network could have billions of weights and numerical derivatives would require use to forward propagate in proportion to the number of weights. Numerical derivatives often suffer from more numerical error than other alternatives.
 
-Automatic differentiation computes derivatives of a function by first decomposing the function into many elemental pieces, finding the derivative of each piece, and then using the chain rule to find the overall derivatives (or partials). An example would be a linear regression model with two parameters, lets call them W and b. Lets also call Y our prediction and X our input. Then, Y = max(0, W*X + b). We can decompose this function into the following computational graph. 
+Automatic differentiation computes derivatives of a function by first decomposing the function into many elemental pieces, finding the derivative of each piece, and then using the chain rule to find the overall derivatives (or partials). An example would be a linear regression model with two parameters, lets call them W and b. Lets also call Y the label and X our input. Then, Loss =  Y - max(0, W*X + b). We can decompose this function into the following computational graph. 
+
+![alt text](https://miro.medium.com/max/726/1*W6-39saZm_QqL-wQvGESGQ.png "Computational Graph")
 
 The insight of the famous backprop algorithm is that a lot of this work is reduandant.
 
