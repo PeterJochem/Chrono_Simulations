@@ -1,8 +1,7 @@
 # Description
-I spent time learning how to use Juntao's simulation of the foot contacting the granular material. I then used the simulation to generate a dataset of pairs of (x, x_dt, y, y_dt, z, z_dt) and the GRF (F_x, F_y, F_z). I naively ran the dataset with the neural network and it learned a good representation of the function. I then looked at the csv files and almost all of the data is mostly a non-collision state. I made some changes to the simulation code and (as of Monday morning) creating a dataset of only when the foot and granular material are in contact.An image of the results is below 
+I spent time learning how to use Juntao's simulation of the foot contacting the granular material. I then used the simulation to generate a dataset of pairs of (x, x_dt, y, y_dt, z, z_dt) and the GRF (F_x, F_y, F_z). I naively ran the initial dataset with the neural network and it learned a good representation of the function. I then looked at the csv files and most of the data is a non-collision state. I made some changes to the simulation code and (as of Monday morning) am created a small dataset of instances mostly when the foot and granular material are in contact. An image of the results is below. I need to spend time this week generating more training data. The dataset I used to create the graph was from about 20 minutes of time on the gpu so its still a relatively small dataset.  
 
-I also spent time this week learning about how to call Python code from Matlab. I put together a demo of what the final Matlab API might look like. It lets Matlab use a Python Tensorflow neural network. It also lets Matlab get the derivates of the output variables with respect to the input variables. 
-
+I also spent time this week learning about how to call Python code from Matlab. I put together a demo of what the final Matlab API might look like. It lets Matlab use a Python Tensorflow neural network. 
 ![alt text](https://github.com/PeterJochem/Chrono_Simulations/blob/master/HoppingNeural.png "Granular Foot GRF")
 
 
