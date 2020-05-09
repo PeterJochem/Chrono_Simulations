@@ -8,7 +8,7 @@ with warnings.catch_warnings():
     import numpy as np
     import tensorflow as tf
     from tensorflow import keras
-    from keras import backend as k
+    # from keras import backend as k
     import matplotlib.pyplot as plt
     from tensorflow.python.util import deprecation
     deprecation._PRINT_DEPRECATION_WARNINGS = False
