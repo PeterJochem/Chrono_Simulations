@@ -7,12 +7,12 @@ The first 0.5 seconds of the simulation have the foot stand still and wait for t
  
 ![alt text](https://github.com/PeterJochem/Chrono_Simulations/blob/master/smallVis.png "0.5 Second Visualization")
 
-I think the visualizer shows that the simulation is qualitatively correct. It acts plausibly, at least to a visual inspection 
+I think the visualizer shows that the simulation is qualitatively correct. It acts plausibly, at least to a visual inspection. This means it does what Juntao wanted it to do and I am gathering the data from it correctly. 
 
 # Next Week
 1) Change parameters of granular material. Did Juntao find a better parameter? 
 
-2) Run a simulation with in Chrono and use the neural network's predictions to compute the GRF. I have a way to visualize the movement now with the tool I wrote as well as an easily trainable neural network. The network attains low average loss function values. But, a better way to validate it is to use the network in a Chrono simulation and instead of letting Chrono compute the GRF, have the neural network compute it. Then I can visualize the result with my visualization tool. This could serve as a better way to validate the predictions than simply showing the network's average loss.  
+2) Run a simulation with Chrono and use the neural network's predictions to compute the GRF. I have a way to visualize the movement now with the tool I wrote as well as an easily trainable neural network. The network attains low average loss function values. What conclusions can we really draw from that metric? A better way to validate the neural network's predictions is to use it in a Chrono simulation. Instead of letting Chrono compute the GRF, have the neural network compute it. Then I can visualize the result with my visualization tool. This could serve as a better way to validate the predictions than simply showing the network's average loss.  
 
 Compare neural network's predicted GRF with Dan's RFT-based GRFs?
 
