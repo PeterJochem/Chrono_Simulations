@@ -2,7 +2,6 @@ import numpy as np
 from graphics import *
 import random
 import time
-from math import modf
 
 # The window object we will write to
 window_width = 800
@@ -104,9 +103,6 @@ class Foot:
         
         # Describe 
         pt1, pt2, pt3, pt4, center = self.rotatePoints(angle, x, y) 
-    
-        # Scale the system differently
-
 
         # Turn the points into the plane frame
         self.point1G = Point(pt1[0][0], pt1[1][0] )
@@ -183,11 +179,10 @@ def getNextState(fp, skip):
     angle = float( myLine[1] )  
     
     # Center the position to the center 
-    # x = float( myLine[2] ) + (window_width / 2.0)
-    x = (window_height / 2.0) - (1 + float( myLine[2] ) ) * (window_height / 2.0)
+    x = float( myLine[2] ) + (window_width / 2.0)
 
     # Center the position to the center
-    y = (window_height / 2.0) - (1 + float( myLine[6] ) ) * (window_height / 2.0)
+    y = float( myLine[6] ) + (window_height / 2.0)
 
     print(str("( ") + str(x) + ", " + str(y) + str(")") )
 
@@ -201,23 +196,20 @@ fp = open('sim_data/output_plate_positions_and_velocities.csv', 'r')
 
 i = 0
 myFoot = Foot()
-delta = 188942
 while(True):
 
     # Get next foot state
-    angle, x, y = getNextState(fp, delta)
-    # if ( x != 400.0):
-        # print("CHANGED")
-    delta = 1000
+    # angle, x, y = getNextState(fp, 2000)
 
     # Draw objects 
-    myFoot.drawFoot( angle, x, y )
-    
+    myFoot.drawFoot( (2 * np.pi) * (i /360.0), i, (window_height / 2.0) + (np.sin(i/5.0) * window_height / 20.0 ) )
+
     # Pause so person can visualize
-    time.sleep(0.025)     
+    time.sleep(0.025)
     myFoot.undrawFoot()
-    
+
     i = i + 1
+
 
 fp.close()
 
