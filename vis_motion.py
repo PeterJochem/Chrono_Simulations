@@ -184,10 +184,10 @@ def getNextState(fp, skip):
     
     # Center the position to the center 
     # x = float( myLine[2] ) + (window_width / 2.0)
-    x = (window_height / 2.0) - (1 + float( myLine[2] ) ) * (window_height / 2.0)
+    x = (window_height / 2.0) - (1 + float( myLine[2] ) ) * (window_height / 3.0)
 
     # Center the position to the center
-    y = (window_height / 2.0) - (1 + float( myLine[6] ) ) * (window_height / 2.0)
+    y = (window_height / 5.0) - (1 + float( myLine[6] ) ) * (window_height / 3.0)
 
     print(str("( ") + str(x) + ", " + str(y) + str(")") )
 
