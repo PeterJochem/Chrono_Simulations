@@ -16,4 +16,3 @@ I think the visualizer shows that the simulation is qualitatively correct. It ac
 
 Compare neural network's predicted GRF with Dan's RFT-based GRFs?
 
-# Notes to Self
