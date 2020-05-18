@@ -6,10 +6,10 @@ I made the changes to the Chrono simulation to let the neural network compute th
 Both scenarios have the same initial conditions so the neural network should have a high degree of success. The results are below     
 
 The original motion
-![alt text](https://github.com/PeterJochem/Chrono_Simulations/blob/master/originalMotion.png "")
+![alt text](https://github.com/PeterJochem/Chrono_Simulations/blob/master/originalMotion.png "Chrono Computing GRF")
 
 The motion using the neural network's predicted GRF
-![alt text](https://github.com/PeterJochem/Chrono_Simulations/blob/master/nn_pred_GRF_Motion.png "")
+![alt text](https://github.com/PeterJochem/Chrono_Simulations/blob/master/nn_pred_GRF_Motion.png "Neural Network Computing GRF")
 
 The qualitative behavior is the same. Although, the final position of the two motions is slightly diffrent. Something to remember is that the error at each time step should compound on itself. We have no correction mechanism. A slight error in the GRF prediction at each time step can impact all future timestep's predictions of the GRF. This shows that the neural network is being trained well and that the interface between Python and C++ is computing what I wanted it to. 
 
