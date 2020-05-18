@@ -6,10 +6,10 @@ I made the changes the the Chrono simulation to let the neural network compute t
 Both scenarios have the same initial conditions so the neural network should have a high degree of success. The results are below     
 
 The original motion
-![alt text]("https://github.com/PeterJochem/Chrono_Simulations/blob/master/originalMotion.png")
+![alt text]("https://github.com/PeterJochem/Chrono_Simulations/blob/master/originalMotion.png" "")
 
 The motion using the neural network's predicted GRF
-![alt text]("https://github.com/PeterJochem/Chrono_Simulations/blob/master/nn_pred_GRF_Motion.png")
+![alt text]("https://github.com/PeterJochem/Chrono_Simulations/blob/master/nn_pred_GRF_Motion.png" "")
 
 # Next Week
 1) Generate more data and train the network on a larger dataset
