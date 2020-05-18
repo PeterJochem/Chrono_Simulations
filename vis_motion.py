@@ -197,7 +197,8 @@ def getNextState(fp, skip):
 # Animate State
 
 # The file of points describing the foot's state
-fp = open('sim_data/output_plate_positions_and_velocities.csv', 'r')
+# fp = open('sim_data/output_plate_positions_and_velocities.csv', 'r')
+fp = open('/home/peter/Desktop/Chrono/chrono/template_project/sim_data/May17Data/new/output_plate_positions_and_velocities.csv', 'r')
 
 i = 0
 myFoot = Foot()

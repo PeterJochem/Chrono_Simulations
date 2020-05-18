@@ -1,14 +1,22 @@
 import numpy as np
 import time
 import random
-import tensorflow as tf
 import sys
-# from tensorflow import keras
-# from keras import backend as k
-# import matplotlib.pyplot as plt
+import os
 
-#import os
-#os.environ['HDF5_DISABLE_VERSION_CHECK']='2'
+import warnings
+warnings.filterwarnings('ignore') # Gets rid of future warnings
+with warnings.catch_warnings():
+    import numpy as np
+    import tensorflow as tf
+    from tensorflow import keras
+    # from keras import backend as k
+    import matplotlib.pyplot as plt
+    from tensorflow.python.util import deprecation
+    deprecation._PRINT_DEPRECATION_WARNINGS = False
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
+
 
 # Describe this class here
 class trainInstance:

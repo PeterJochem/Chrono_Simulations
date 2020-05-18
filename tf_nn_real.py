@@ -77,10 +77,10 @@ class dataSet:
             index = 0
             
             # Ignore data if it isn't a full line - happens when I ctrl c on Chrono
-            if (len(line) >= 7):
+            if ( (len(line) >= 7) ):
                 for i in range(len(line) ):
 
-                    if ( i == 0 ):
+                    if ( (i == 0) or (i == 1) ):
                         # We want to ignore the time value
                         continue
 
@@ -117,8 +117,6 @@ class dataSet:
                         label[index] = float(rawLabel[i])
                         index = index + 1
 
-            # print(label)
-            
             # def __init__(self, inputData, label):
             allData.append(trainInstance(nextInput, label) )
             
