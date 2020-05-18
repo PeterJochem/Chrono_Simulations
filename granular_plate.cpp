@@ -16,6 +16,7 @@
 // wave tank in Chrono::Granular via the co-simulation framework.
 // =============================================================================
 
+#define PY_SSIZE_T_CLEAN
 #include <iostream>
 #include <vector>
 #include <string>
@@ -33,7 +34,18 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_granular/utils/ChGranularJsonParser.h"
 
+// For calling Tensorflow
+#include <Python.h>
+#include <boost/python.hpp>
+
+#include <stdlib.h>
+
+// For the database
 #include "mysql_connection.h"
+
+// For parsing the JSON file
+#include <jsoncpp/json/json.h>
+#include <fstream>
 
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
@@ -41,6 +53,20 @@
 #include <cppconn/statement.h>
 using namespace chrono;
 using namespace chrono::granular;
+
+// This is for the database - it is a unique identifier foe each experiment
+// We will set this later 
+int experimentID = -1;
+
+// Globals that are the GRFs computed by the neural network
+double nn_Fx = 1.0;
+double nn_Fy = 1.0;
+double nn_Fz = 1.0;
+
+PyObject *pName, *pModule, *pFunc;
+// PyObject *pArgs, *pValue;
+
+
 
 void ShowUsage(std::string name) {
 	std::cout << "usage: " + name + " <json_file>" << std::endl;
@@ -84,8 +110,8 @@ void writeMeshFrames(std::ostringstream& outstream, ChBody& body, std::string ob
  */
 std::string createTrainSQL(double time, double x, double x_dt, double y, double y_dt, double z, double z_dt, double Fx, double Fy, double Fz) {
 
-	std::string myStr = "INSERT INTO state_grf(time, x, x_dt, y, y_dt, z, z_dt, Fx, Fy, Fz) VALUES (";	
-	myStr = myStr + std::to_string(time) +  ", " + std::to_string(x) + ", " + std::to_string(x_dt) + ", " 
+	std::string myStr = "INSERT INTO state_grf(experiment_id, time, x, x_dt, y, y_dt, z, z_dt, Fx, Fy, Fz) VALUES (";	
+	myStr = myStr + std::to_string(experimentID) + ", " +  std::to_string(time) +  ", " + std::to_string(x) + ", " + std::to_string(x_dt) + ", " 
 		+ std::to_string(y) + ", " + std::to_string(y_dt) + ", " + std::to_string(z) + ", " + 
 		std::to_string(z_dt) + ", " + std::to_string(Fx) + ", " + std::to_string(Fy) + ", "
 		+ std::to_string(Fz) + ")";
@@ -135,8 +161,11 @@ void writeStateToDB(double time, double x, double x_dt, double y, double y_dt, d
 	cout << "Successfully ended" << endl;
 }
 
-/* Describe this function here
-*/
+/* This function sets up the database by making sure it exists 
+ * and that the right tables exist
+ * Input: None
+ * Returns: None
+ */
 void setupDatbase() {
 
 	try {
@@ -164,8 +193,7 @@ void setupDatbase() {
 
 		stmt->execute("USE hoppingRobot"); // Set current database as hoppingRobot
 		try {
-			// Fix me - add link to experiment
-			stmt->execute("CREATE TABLE state_grf(time double, x double, x_dt double, y double, y_dt double, z double, z_dt double, Fx double, Fy double, Fz double)");
+			stmt->execute("CREATE TABLE state_grf(experiment_id int, time double, x double, x_dt double, y double, y_dt double, z double, z_dt double, Fx double, Fy double, Fz double)");
 		}
 		catch (sql::SQLException &e) {
 
@@ -178,16 +206,40 @@ void setupDatbase() {
 
 		try {
 			// Fix me - add more info to the experiment
-			stmt->execute("CREATE TABLE experiment(id int, json_id int)");
+			stmt->execute("CREATE TABLE experiment(id int, sphere_radius float, sphere_density float, box_X float, box_Y float, box_Z float, step_size float, time_end float, grav_X float, grav_Y float, grav_Z float, normalStiffS2S float, normalStiffS2W float, normalStiffS2M float, normalDampS2S float, normalDampS2W float, normalDampS2M float, tangentStiffS2S float, tangentStiffS2W float, tangentStiffS2M float, tangentDampS2S float, tangentDampS2W float, tangentDampS2M float, static_friction_coeffS2S float, static_friction_coeffS2W float, static_friction_coeffS2M float, cohesion_ratio float, adhesion_ratio_s2w float, adhesion_ratio_s2m float, psi_T float, psi_L float)");
 		}
 		catch (sql::SQLException &e) {
 
 			// Check if the the database already exists
 			if (e.getErrorCode() == 1050) {
 				std::cout << "The table already exists" << "\n";
+			}
+		}
+
+
+		// Query the experiment table to setup the experiment id
+		try {
+			sql::ResultSet *res;
+			res = stmt->executeQuery("select max(id) from experiment");
+			while ( res->next() ) {
+
+				cout << "The new experiment id is = " << res->getInt(1) << "\n"; // getInt(1) returns the first column
+
+				// Set the global value
+				experimentID = res->getInt(1) + 1;
+			}
+		}
+
+		catch (sql::SQLException &e) {
+
+			// Check if the the database already exists
+			// CHANGE ERROR CODE
+			if (e.getErrorCode() == 1050) {
+				std::cout << "Error extracting the experiment id" << "\n";
 				// The table already exists
 			}
 		}
+
 
 		delete stmt;
 		delete con;
@@ -199,18 +251,266 @@ void setupDatbase() {
 		cout << "# ERR: " << e.what();
 		cout << " (MySQL error code: " << e.getErrorCode();
 		cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+	}	
+}
+
+/* Describe this function
+*/
+void createNewExperiment() {
+
+	// Read the json file to 
+	Json::Value root;   // starts as "null"; will contain the root value after parsing
+	// std::cin >> root;
+	std::ifstream config_doc("demo_GRAN_plate.json", std::ifstream::binary);
+	config_doc >> root;
+
+	std::string sphere_radius = root["sphere_radius"].asString();
+	std::string sphere_density = root["sphere_density"].asString();
+	std::string box_X = root["box_X"].asString();
+
+	std::string box_Y = root["box_Y"].asString();
+	std::string box_Z = root["box_Z"].asString();
+	std::string step_size = root["step_size"].asString();
+	std::string time_end = root["time_end"].asString();
+
+	std::string grav_X = root["grav_X"].asString();
+	std::string grav_Y = root["grav_Y"].asString();
+	std::string grav_Z  = root["grav_Z"].asString();
+
+	std::string normalStiffS2S = root["normalStiffS2S"].asString();
+	std::string normalStiffS2W = root["normalStiffS2W"].asString();
+	std::string normalStiffS2M  = root["normalStiffS2M"].asString();
+
+	std::string normalDampS2S = root["normalDampS2S"].asString();
+	std::string normalDampS2W = root["normalDampS2W"].asString();
+	std::string normalDampS2M = root["normalDampS2M"].asString();
+
+	std::string tangentStiffS2S = root["tangentStiffS2S"].asString();
+	std::string tangentStiffS2W = root["tangentStiffS2W"].asString();
+	std::string tangentStiffS2M = root["tangentStiffS2M"].asString();
+
+	std::string tangentDampS2S = root["tangentDampS2S"].asString();
+	std::string tangentDampS2W = root["tangentDampS2W"].asString();
+	std::string tangentDampS2M = root["tangentDampS2M"].asString();
+
+	std::string static_friction_coeffS2S = root["static_friction_coeffS2S"].asString();
+	std::string static_friction_coeffS2W = root["static_friction_coeffS2W"].asString();
+	std::string static_friction_coeffS2M = root["static_friction_coeffS2M"].asString();
+
+	std::string cohesion_ratio = root["cohesion_ratio"].asString();
+	std::string adhesion_ratio_s2w = root["adhesion_ratio_s2w"].asString();
+	std::string adhesion_ratio_s2m = root["adhesion_ratio_s2m"].asString();
+
+	std::string psi_T = root["psi_T"].asString();
+	std::string psi_L = root["psi_L"].asString();
+
+	// Now format the string to input this into the database
+	try {
+		sql::Driver *driver;
+		sql::Connection *con;
+		sql::Statement *stmt;
+
+		/* Create a connection */
+		driver = get_driver_instance();
+		con = driver->connect("tcp://127.0.0.1:3306", "root", "test"); //IP Address, user name, password
+
+		stmt = con->createStatement();
+
+		stmt->execute("USE hoppingRobot"); // Set current database as hoppingRobot
+
+		std::string SQLcommand = "insert into experiment values (" + std::to_string(experimentID) + ", " + sphere_radius + 
+			", " + sphere_density + ", " + box_X + ", " + box_Y + ", " + box_Z + ", "
+			+ step_size + ", " + time_end + ", " + grav_X  +  ", " 
+			+ grav_Y + ", " + grav_Z + ", " + normalStiffS2S + ", " + normalStiffS2W + ", " 
+			+ normalStiffS2M + ", " + normalDampS2S + ", " + normalDampS2W + ", " + normalDampS2M + ", " + tangentStiffS2S + 
+			", " + tangentStiffS2W + ", " + tangentStiffS2M + ", " + tangentDampS2S + ", " + tangentDampS2W + ", " 
+			+ tangentDampS2M + ", " + static_friction_coeffS2S + ", " + static_friction_coeffS2W + ", " + 
+			static_friction_coeffS2M + ", " + cohesion_ratio + ", " + adhesion_ratio_s2w + ", " + adhesion_ratio_s2m + ", "
+			+ psi_T + ", " + psi_L + " )";
+
+		std::cout << "\n" << "\n";
+		std::cout << SQLcommand;		
+		std::cout << "\n";	
+
+		stmt->execute(SQLcommand);
+
+		delete stmt;
+		delete con;
+		/* According to documentation,
+		   You must free the sql::Statement and sql::Connection objects explicitly using delete
+		   But do not explicitly free driver, the connector object. Connector/C++ takes care of freeing that. */
+	}
+	catch (sql::SQLException &e) {
+		cout << "# ERR: " << e.what();
+		cout << " (MySQL error code: " << e.getErrorCode();
+		cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+	}
+}
+
+/* Describe this function
+ * Input: The input vector - a 6 vector 
+ * Output: The GRF 
+ */
+void  computeGRF(double* inVector) {
+	
+	PyObject *pArgs, *pValue;
+
+	//for (int j = 0; j < 6; ++j) {
+        //	std::cout << inVector[j] << "\n";
+        //}
+
+        double x = inVector[0];
+	double x_dt = inVector[1];
+	double y = inVector[2];	
+	double y_dt = inVector[3];
+	double z = inVector[4];
+	double z_dt = inVector[5];
+	// Input vector is a 6 vector 
+        int inVectorLength = 6;
+
+	
+	char file[30] = "rtn";
+	char functionName[30] = "computeGRF";
+	
+	char* argv[5];
+	int argc = 5;
+	
+	/*
+	PyObject *pName, *pModule, *pFunc;
+	PyObject *pArgs, *pValue;
+	*/
+	int i;
+	
+		
+	Py_Initialize();
+	/*	
+	PyRun_SimpleString("import sys");
+	PyRun_SimpleString("sys.path.append(\".\")");
+
+	pName = PyUnicode_DecodeFSDefault(file);
+
+	pModule = PyImport_Import(pName);
+	Py_DECREF(pName);
+	*/
+	
+	
+	if (pModule != NULL) {
+		//  pFunc = PyObject_GetAttrString(pModule, functionName);
+		/* pFunc is a new reference */
+		
+		if (pFunc && PyCallable_Check(pFunc)) {
+			
+			pArgs = PyTuple_New(6);
+			
+			//std::cout << "ABOUT TO SET VARIABLES IN PYTHON" << "\n";			
+			for (i = 0; i < inVectorLength; ++i) {
+
+				pValue = PyFloat_FromDouble( inVector[i] );
+
+				if (!pValue) {
+					Py_DECREF(pArgs);
+					Py_DECREF(pModule);
+					fprintf(stderr, "Cannot convert argument\n");
+					return;
+				}
+
+				/* pValue reference stolen here: */
+				PyTuple_SetItem(pArgs, i, pValue);
+			}
+			
+			//std::cout << "ABOUT TO START CALL TO PYTHON" << "\n";
+			pValue = PyObject_CallObject(pFunc, pArgs);
+			Py_DECREF(pArgs);
+			//std::cout << "FINISHED CALL INTO PYTHON" << "\n";
+
+			/*
+			while (pValue == NULL) {
+				continue;
+			}
+			*/	
+
+			if (pValue != NULL) {
+				
+				// printf("Result of call: %f, %f, %f\n", PyFloat_AsDouble( PyTuple_GetItem(pValue, 0) ), PyFloat_AsDouble( PyTuple_GetItem(pValue, 1) ) , PyFloat_AsDouble( PyTuple_GetItem(pValue, 2) )  );
+				// std::cout << "\n";
+				
+				//std::cout << "SETTING GLOBALS" << "\n";
+		        	// Set the GRF variables
+        			nn_Fx = PyFloat_AsDouble( PyTuple_GetItem(pValue, 0) );
+        			nn_Fy = PyFloat_AsDouble( PyTuple_GetItem(pValue, 1) );
+        			nn_Fz = PyFloat_AsDouble( PyTuple_GetItem(pValue, 2) );
+
+        			//std::cout << "FINISHED SETTING GLOBALS" << "\n";
+
+				//Py_DECREF(pValue);
+			}
+			else {
+				//Py_DECREF(pFunc);
+				//Py_DECREF(pModule);
+				PyErr_Print();
+				fprintf(stderr,"Call failed\n");
+				return;
+			}
+		}
+		else {
+			if (PyErr_Occurred())
+				PyErr_Print();
+			fprintf(stderr, "Cannot find function \"%s\"\n", functionName);
+		}
+		//Py_XDECREF(pFunc);
+		//Py_DECREF(pModule);
+	}
+	else {
+		PyErr_Print();
+		fprintf(stderr, "Failed to load \"%s\"\n", file);
+		return;
 	}
 	
+	/*	
+	if (Py_FinalizeEx() < 0) {
+		return;
+	}
+	*/
+
+	/*	
+	std::cout << "SETTING GLOBALS" << "\n";
+	// Set the GRF variables 
+	nn_Fx = PyFloat_AsDouble( PyTuple_GetItem(pValue, 0) ); 
+	nn_Fy = PyFloat_AsDouble( PyTuple_GetItem(pValue, 1) );
+	nn_Fz = PyFloat_AsDouble( PyTuple_GetItem(pValue, 2) );
+	
+	std::cout << "FINISHED SETTING GLOBALS" << "\n";
+	*/
+
+	return;
 }
+
+
 
 
 const double time_settle = 1;
 constexpr float F_CGS_TO_SI = 1e-5;
 int main(int argc, char* argv[]) {
+	
+
+	char file[30] = "rtn";
+        char functionName[30] = "computeGRF";
+
+	Py_Initialize();
+
+        PyRun_SimpleString("import sys");
+        PyRun_SimpleString("sys.path.append(\".\")");
+
+        pName = PyUnicode_DecodeFSDefault(file);
+
+        pModule = PyImport_Import(pName);
+        Py_DECREF(pName);
+	
+	pFunc = PyObject_GetAttrString(pModule, functionName);	
+
 
 	// Setup the database - make the right tables/make sure they already exist 
-	// setupDatbase();	
-
+	setupDatbase();	
 
 	std::ofstream input_pos_vel("sim_data/output_plate_positions_and_velocities.csv");
 	std::ofstream out_forces("sim_data/output_plate_forces.csv");
@@ -365,10 +665,13 @@ int main(int argc, char* argv[]) {
 	// Lets us downsample data    
 	bool record_data = false;
 
+	// Create a new experiment in the database
+	createNewExperiment();	
+
 	for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
 
 		// Important 	    
-		record_data = false;	    
+		record_data = true;	    
 
 		if (t >= time_settle && plate_released==false ) {
 			gran_sys.enableMeshCollision();
@@ -384,7 +687,8 @@ int main(int argc, char* argv[]) {
 		else if(t >=time_settle&& plate_released==true ) {
 			rigid_plate->SetPos_dt(ChVector<>(-0.707, 0, -0.707));
 			rigid_plate->SetRot(Q_from_AngAxis(CH_C_PI/6, VECT_Y));
-			std::cout << "Plate intruding" << std::endl;
+
+			// std::cout << "Plate intruding" << std::endl;
 
 			record_data = true;
 		}
@@ -422,16 +726,31 @@ int main(int argc, char* argv[]) {
 		float ball_force[6];
 		gran_sys.collectGeneralizedForcesOnMeshSoup(ball_force);
 
+		// Compute the GRF
+		double inVector[6];
+		inVector[0] = rigid_plate->GetPos()[0];
+        	inVector[1] = plate_vel[0];
+        	inVector[2] = rigid_plate->GetPos()[1];
+        	inVector[3] = plate_vel[1];
+        	inVector[4] = rigid_plate->GetPos()[2];
+        	inVector[5] = plate_vel[2];
+		
+		// for (int j = 0; j < 6; ++j) {
+		//	std::cout << inVector[j] << "\n";
+		//}
+		
+		// std::cout << "Calling computeGRF" << "\n";
+        	computeGRF(inVector);
+		// std::cout << "RETURNED" << "\n";
+		
 		rigid_plate->Empty_forces_accumulators();
-		rigid_plate->Accumulate_force(ChVector<>(ball_force[0], ball_force[1], ball_force[2]), plate_pos, false);
+		// This applies the force ball_force[0-2] at the location plate_pos	
+		// rigid_plate->Accumulate_force(ChVector<>(ball_force[0], ball_force[1], ball_force[2]), plate_pos, false);
+		 rigid_plate->Accumulate_force(ChVector<>(nn_Fx, nn_Fy, nn_Fz), plate_pos, false);
+
+		// What to do about the torque?
 		rigid_plate->Accumulate_torque(ChVector<>(ball_force[3], ball_force[4], ball_force[5]), false);
 
-		// This printed information to the console	
-		/*	
-			std::cout << rigid_plate->Get_accumulated_force()[0] * F_CGS_TO_SI << ','
-			<< rigid_plate->Get_accumulated_force()[1] * F_CGS_TO_SI << ','
-			<< rigid_plate->Get_accumulated_force()[2] * F_CGS_TO_SI <<','<<gran_sys.get_max_z()<<','<<gran_sys.getNumSpheres()<< std::endl;
-			*/
 
 		if ( record_data == true ) {
 
@@ -446,8 +765,7 @@ int main(int argc, char* argv[]) {
 			double Fy = rigid_plate->Get_accumulated_force()[1] * F_CGS_TO_SI; 
 			double Fz = rigid_plate->Get_accumulated_force()[2] * F_CGS_TO_SI;
 
-			writeStateToDB(t, x, x_dt, y, y_dt, z, z_dt, Fx, Fy, Fz);
-
+			// writeStateToDB(t, x, x_dt, y, y_dt, z, z_dt, Fx, Fy, Fz);
 			out_forces << t << "," << Fx << "," << Fy << "," << Fz << "," << '\n';
 
 			// This originally was... What is gran_sys.get_max_z()?
@@ -455,7 +773,8 @@ int main(int argc, char* argv[]) {
 			   << rigid_plate->GetPos()[2] <<","<<gran_sys.get_max_z()<<"\n";
 			   */
 
-			input_pos_vel << t << "," << x << "," << x_dt << "," << y << "," << y_dt << ", " << z << "," << z_dt << "," << "\n";
+			// 1.45339, 0, -0.320547, -0.707, 0, 0, -0.946311, -0.707,	
+			input_pos_vel << t << "," << plate_rot[1]  << ", " << x << "," << x_dt << "," << y << "," << y_dt << ", " << z << "," << z_dt << "," << "\n";
 		}        	
 
 		if (curr_step % out_steps == 0) {
