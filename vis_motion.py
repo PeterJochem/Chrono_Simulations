@@ -187,9 +187,9 @@ def getNextState(fp, skip):
     x = (window_height / 2.0) - (1 + float( myLine[2] ) ) * (window_height / 3.0)
 
     # Center the position to the center
-    y = (window_height / 5.0) - (1 + float( myLine[6] ) ) * (window_height / 3.0)
+    y = (window_height / 1.0) - (1 + float( myLine[6] ) ) * (window_height / 3.0)
 
-    print(str("( ") + str(x) + ", " + str(y) + str(")") )
+    # print(str("( ") + str(x) + ", " + str(y) + str(")") )
 
     return angle, x, y
     
@@ -198,18 +198,19 @@ def getNextState(fp, skip):
 
 # The file of points describing the foot's state
 # fp = open('sim_data/output_plate_positions_and_velocities.csv', 'r')
-fp = open('/home/peter/Desktop/Chrono/chrono/template_project/sim_data/May17Data/new/output_plate_positions_and_velocities.csv', 'r')
+fp = open('/home/peter/Desktop/Chrono/chrono/template_project/sim_data/May24Data/output_plate_positions_and_velocities.csv', 'r')
 
 i = 0
 myFoot = Foot()
-delta = 188942
-while(True):
+delta = 10
+# while(True):
 
+while(i < 300):
     # Get next foot state
     angle, x, y = getNextState(fp, delta)
     # if ( x != 400.0):
         # print("CHANGED")
-    delta = 1000
+    delta = 10
 
     # Draw objects 
     myFoot.drawFoot( angle, x, y )
