@@ -213,6 +213,7 @@ while(i < 300):
     delta = 10
 
     # Draw objects 
+    angle = -3.14 / 4.0
     myFoot.drawFoot( angle, x, y )
     
     # Pause so person can visualize
