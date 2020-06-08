@@ -1,10 +1,15 @@
 import numpy as np
 import time
 import random
-import tensorflow as tf
-from tensorflow import keras
-from keras import backend as k
 import matplotlib.pyplot as plt
+import warnings
+
+warnings.filterwarnings('ignore') # Gets rid of future warnings
+with warnings.catch_warnings():
+    import tensorflow as tf
+    from tensorflow.python.util import deprecation
+    deprecation._PRINT_DEPRECATION_WARNINGS = False
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 # Describe this class here
@@ -23,7 +28,31 @@ class dataSet:
     # Constructor
     def __init__(self):
         
-        self.allInstances = self.readInData()
+        # FIX ME - replace this with read in all files data
+        # belta0  belta30  belta-30  belta45  belta-45  belta60  belta-60  belta90 
+        self.allInstances = self.readInFile("/extract/belta0/")
+        self.allInstances.extend(self.readInFile("/extract/belta30/"))
+        self.allInstances.extend(self.readInFile("/extract/belta-30/"))
+        self.allInstances.extend(self.readInFile("/extract/belta45/"))
+        self.allInstances.extend(self.readInFile("/extract/belta-45/"))
+        self.allInstances.extend(self.readInFile("/extract/belta60/"))
+        self.allInstances.extend(self.readInFile("/extract/belta-60/"))
+        self.allInstances.extend(self.readInFile("/extract/belta90/"))        
+        
+        # beta_0  beta_30  beta_-30  beta_45  beta_-45  beta_60  beta_-60  beta_90
+        self.allInstances.extend(self.readInFile("/intrude/beta_0/"))
+        self.allInstances.extend(self.readInFile("/intrude/beta_30/"))
+        self.allInstances.extend(self.readInFile("/intrude/beta_-30/"))
+        self.allInstances.extend(self.readInFile("/intrude/beta_45/"))
+        self.allInstances.extend(self.readInFile("/intrude/beta_-45/"))
+        self.allInstances.extend(self.readInFile("/intrude/beta_60/"))
+        self.allInstances.extend(self.readInFile("/intrude/beta_-60/"))
+        self.allInstances.extend(self.readInFile("/intrude/beta_90/"))
+    
+        #######
+        # Fix me - add the small angles files
+        #######
+
 
     # Describe this method here
     def format(self, instances):
@@ -52,13 +81,15 @@ class dataSet:
     # Input: selfi
     # Returns a list of all the input/output pairs in objects
     # of type trainInstance
-    def readInData(self):
+    def readInFile(self, folderName):
         
         # Open the file
-        # myFile = open("trainingData/trainingData.txt", "r")
-        myInputFile = open("output_plate_positions.csv")
+        basePrefix = "/home/peter/Desktop/Chrono/chrono/JuntaoData/Foot-ROBOT/data_set/"
+        inputFilePath = str(basePrefix) + str(folderName) + str("output_plate_positions.csv") 
+        labelFilePath = str(basePrefix) + str(folderName) + str("output_plate_forces.csv")
+        myInputFile = open(inputFilePath)
         
-        myLabelFile = open("output_plate_forces.csv")
+        myLabelFile = open(labelFilePath)
         
         # Describe the angles of the foot
         gamma = -1.0
@@ -69,7 +100,6 @@ class dataSet:
         
         # Read in the training data from the txt file
         line = myInputFile.readline()
-        print(line)
         
         lineCount = 0
 
@@ -77,8 +107,17 @@ class dataSet:
             
             line = line.split(",")
 
-            if (len(line) <= 2):
-                # Ignore the entries in files demarcating the variable angles
+            if (len(line) < 2):
+                print("Error: Line length is less than 2")
+                
+                # Read in the next line
+                line = myInputFile.readline()
+                rawLabel = myLabelFile.readline()
+                rawLabel = rawLabel.split(",")
+
+
+            if ( (len(line) == 2) or (line[2] == '') ):
+                print("New gamma, beta pairs")
                 # Set gamma and beta 
                 gamma = line[0]
                 beta = line[1]
@@ -89,52 +128,40 @@ class dataSet:
                 rawLabel = rawLabel.split(",")
                 continue
 
-            # The data is time, x, y, z, depth ...
-            nextInput = np.zeros(4)
+             
+            # The FILE's data is time, x, y, z, depth ...
+            # The data we care about is ForceX/depth, Force_Y/depth  
+            nextInput = np.zeros(2)
             lineCount = lineCount + 1
+            
             # Get rid of spaces in list
             index = 0
             
-            # Ignore data if it isn't a full line - happens when I ctrl c on Chrono
-            if ( (len(line) >= 5) ):
-                for i in range(len(line) ):
+            label = np.zeros(2)
 
-                    if ( (i == 0) ):
-                        # We want to ignore the time value
-                        continue
-
-                    elif (line[i] == "\n"):
-                        continue
-
-                    elif( line[i] != ""):
-                        # print(line[i])
-                        nextInput[index] = float(line[i])
-                        index = index + 1
-        
-            label = np.zeros(3)
-
-            # The label file is t, F1, F2, F3
+            # The label file is time, F1, F2, F3
             rawLabel = myLabelFile.readline()
             rawLabel = rawLabel.split(",")
-
-            # Get rid of spaces in list
-            index = 0
+    
 
             # Ignore data if it isn't a full line - happens when I ctrl c on Chrono
-            if (len(rawLabel) >= 3):
-                for i in range(len(rawLabel) ):
+            if ( (len(line) >= 5) ):
                     
-                    # We want to ignore the time value
-                    if ( i == 0 ):
-                        continue
-                
-                    if (rawLabel[i] == "\n"):
-                        continue
+                try:
+                    forceX = float( rawLabel[1] )    
+                    forceZ = float( rawLabel[3] )
+                    depth = float( line[4] ) 
+                    
+                    nextInput[0] = gamma  
+                    nextInput[1] = beta
+                    # nextInput[2] = depth 
 
-                    elif( rawLabel[i] != ""):
-                        label[index] = float(rawLabel[i])
-                        index = index + 1
+                    label[0] = float( float(forceX) / depth) 
+                    label[1] = float( float(forceZ) / depth)
+                except:
+                    pass 
 
+            
             # def __init__(self, inputData, label):
             allData.append(trainInstance(nextInput, label) )
             
@@ -154,21 +181,18 @@ class dataSet:
 # Create a datset object with all our data
 myDataSet = dataSet()
 
-
 # Define the computational graph
-# The inputs are = 
-# The ball dataset is diffrent 
-x = tf.placeholder(tf.float32, shape=(None, 6), name = 'x')
+x = tf.placeholder(tf.float32, shape=(None, 2), name = 'x')
 
-# Outputs are [F x , F y , M z]
-y = tf.placeholder(tf.float32, shape=(None, 3), name = 'y')
+# Outputs are [F x / depth, Force z / depth]
+y = tf.placeholder(tf.float32, shape=(None, 2), name = 'y')
 
-W1 = tf.Variable(tf.random_normal([4, 30], stddev = 0.03), name = 'W1')
+W1 = tf.Variable(tf.random_normal([2, 30], stddev = 0.03), name = 'W1')
 b1 = tf.Variable(tf.random_normal([30]), name ='b1')
 
 # and the weights connecting the hidden layer to the output layer
-W2 = tf.Variable(tf.random_normal([30, 3], stddev = 0.03), name = 'W2')
-b2 = tf.Variable(tf.random_normal([3]), name = 'b2')
+W2 = tf.Variable(tf.random_normal([30, 2], stddev = 0.03), name = 'W2')
+b2 = tf.Variable(tf.random_normal([2]), name = 'b2')
 
 hidden_out = tf.add(tf.matmul(x, W1), b1)
 hidden_out = tf.nn.relu(hidden_out)
@@ -184,7 +208,7 @@ print("")
 print("")
 
 # 0.00000001
-optimizer = tf.train.GradientDescentOptimizer(0.001)
+optimizer = tf.train.GradientDescentOptimizer(0.0005)
 train_op = optimizer.minimize(loss)
 
 
@@ -226,24 +250,71 @@ with tf.Session() as sess:
         loss_test_array[i] = loss.eval(feed_dict_test)
 
     # Feed in a real pair of data we trained on
-    grad_numerical = sess.run(d_loss_dx, {x: [testInputs[0] ] , y: [testLabels[0] ] } )  
+    # grad_numerical = sess.run(d_loss_dx, {x: [testInputs[0] ] , y: [testLabels[0] ] } )  
+    prediction = sess.run(y_pred, {x: [testInputs[0] ] , y: [testLabels[0] ] } )
     print("")
-    print("The gradient of loss wrt an input vector ")
-    print(grad_numerical)
-
-    # Feed in a random data point which doesn't belong to part of the dataset function
-    # grad_numerical = sess.run(d_loss_dx, {x: [[8.0, 5.0, 1.0, -100.0]] , y: [[4.0, 500.0, -20.0]] } )
-    # print("")
-    # print("The gradient of loss wrt a random input vector (ie not from our observed dataset)")
-    # print(grad_numerical)
+    print("The prediction is ")
+    print(prediction)
 
 
+    plt.plot( np.linspace(0, epochs, epochs), loss_test_array, color = "blue" )
+    plt.title( 'Loss Function vs Epoch - Hopping Foot' )
+    plt.ylabel( 'Loss' )
+    plt.xlabel( 'Epoch' )
+    plt.show()
 
-plt.plot( np.linspace(0, epochs, epochs), loss_test_array, color = "blue" )
-plt.title( 'Loss Function vs Epoch - Hopping Foot' )
-plt.ylabel( 'Loss' )
-plt.xlabel( 'Epoch' )
-plt.show()
+    # Run the predictions with diffrent gamma, and betas
+    # Warmup: Predict the original data/test data
+
+    resolution = 20
+    # Remember we are using DEGREES
+    increment = 180.0 / resolution
+    
+    inputData = []
+    
+    F_X = np.zeros((resolution, resolution))
+    
+    F_Z = np.zeros((resolution, resolution))
+
+    count = 0
+    for i in range(resolution):
+        for j in range(resolution):
+            
+            gamma = -1 * (180.0 / 2.0) + (j * increment) 
+            beta = (180.0 / 2.0) - (i * increment)
+            
+            # depth = 1.0
+            nextEntry = [gamma, beta]
+            
+            inputData.extend( [nextEntry] )
+            count = count + 1
+                
+            # The y-label is irrelevant to predicting the y-label, here, after training
+            prediction = sess.run(y_pred, {x: [nextEntry] , y: [[ 1.0, 1.0 ]] } )
+            
+            # F_X[i][j] = ( (prediction[0][0] + 0.1) / 0.2) * 255
+            # F_Z[i][j] = ( (prediction[0][1] + 0.3) / 0.6) * 255
+
+            F_X[i][j] = prediction[0][0] 
+            F_Z[i][j] = prediction[0][1]
+
+
+    w = 10
+    h = 10
+    fig = plt.figure(figsize = (8, 8))
+    columns = 2
+    rows = 1
+    ax1 = fig.add_subplot(rows, columns, 1)
+    plt.imshow(F_Z)
+    ax1.title.set_text('α_Z')
+    plt.colorbar()
+
+    ax2 = fig.add_subplot(rows, columns, 2)
+    plt.imshow(F_X)
+    ax2.title.set_text('α_X')
+    
+    plt.colorbar()
+    plt.show()
 
 
 
