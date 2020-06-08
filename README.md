@@ -1,5 +1,5 @@
 # Summary
-Juntao gave me the data he used to replicate Chen Li's graphs
+Juntao prepared the data he used to replicate Chen Li's graphs and I used it to learn the mapping that Li's group learned from experiments. This graph is shown below. It maps (intrusion angle, attack angle) -> (Force X / depth, Force Z / depth) 
 
 # Results
 The graphs look qualitaively correct. They seem to capture the rough structure of the original graphs. This is only a 2 layer neural network trained over 4000 epochs (about 3-5 minutes on cpu). The mapping struggles to get the scale correct though. I assume this is because our simulation's granular material is not exactly the same as the material used in Chen Li's experiment. This would explain the systematic error in the scales.
