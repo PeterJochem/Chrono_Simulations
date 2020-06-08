@@ -6,4 +6,4 @@ The graphs look qualitaively correct. They seem to capture the rough structure o
 ![Learned Mapping](https://github.com/PeterJochem/Chrono_Simulations/blob/master/replicateChenLiGraphs/Figure_3.png "Learned Mapping")
 
 Here are the orginal graphs
-![Original Graphs]( "Original Graphs")
+![Original Graphs]( https://github.com/PeterJochem/Chrono_Simulations/blob/master/replicateChenLiGraphs/originalChenLiGraphs.png "Original Graphs")
