@@ -6,5 +6,6 @@ The graphs look qualitaively correct. They seem to capture the rough structure o
 I experimented with a 5-6 layer network and training longer. This did not significantly improve the mapping. It took much much longer to train though (about 45 minutes). I think if I tune the hyper parameters more, the mapping could improve significantly.  
 ![Learned Mapping](https://github.com/PeterJochem/Chrono_Simulations/blob/master/replicateChenLiGraphs/Figure_1.png "Learned Mapping")
 
-Here are the original graphs
+Here are the original graphs 
+
 ![Original Graphs]( https://github.com/PeterJochem/Chrono_Simulations/blob/master/replicateChenLiGraphs/originalChenLiGraphs.png "Original Graphs")
