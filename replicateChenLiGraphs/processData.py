@@ -187,37 +187,37 @@ x = tf.placeholder(tf.float32, shape=(None, 2), name = 'x')
 # Outputs are [F x / depth, Force z / depth]
 y = tf.placeholder(tf.float32, shape=(None, 2), name = 'y')
 
-W1 = tf.Variable(tf.random_normal([2, 100], stddev = 0.03), name = 'W1')
-b1 = tf.Variable(tf.random_normal([100]), name = 'b1')
+W1 = tf.Variable(tf.random_normal([2, 20], stddev = 0.03), name = 'W1')
+b1 = tf.Variable(tf.random_normal([20]), name = 'b1')
 
-W2 = tf.Variable(tf.random_normal([100, 70], stddev = 0.03), name = 'W2')
-b2 = tf.Variable(tf.random_normal([70]), name = 'b2')
+W2 = tf.Variable(tf.random_normal([20, 2], stddev = 0.03), name = 'W2')
+b2 = tf.Variable(tf.random_normal([2]), name = 'b2')
 
-W3 = tf.Variable(tf.random_normal([70, 40], stddev = 0.03), name = 'W3')
-b3 = tf.Variable(tf.random_normal([40]), name = 'b3')
-
-# and the weights connecting the hidden layer to the output layer
-W4 = tf.Variable(tf.random_normal([40, 15], stddev = 0.03), name = 'W4')
-b4 = tf.Variable(tf.random_normal([15]), name = 'b4')
+# W3 = tf.Variable(tf.random_normal([70, 40], stddev = 0.03), name = 'W3')
+# b3 = tf.Variable(tf.random_normal([40]), name = 'b3')
 
 # and the weights connecting the hidden layer to the output layer
-W5 = tf.Variable(tf.random_normal([15, 2], stddev = 0.03), name = 'W5')
-b5 = tf.Variable(tf.random_normal([2]), name = 'b5')
+# W4 = tf.Variable(tf.random_normal([40, 15], stddev = 0.03), name = 'W4')
+# b4 = tf.Variable(tf.random_normal([15]), name = 'b4')
+
+# and the weights connecting the hidden layer to the output layer
+# W5 = tf.Variable(tf.random_normal([15, 2], stddev = 0.03), name = 'W5')
+# b5 = tf.Variable(tf.random_normal([2]), name = 'b5')
 
 
 hidden_out1 = tf.add(tf.matmul(x, W1), b1)
 hidden_out1 = tf.nn.relu(hidden_out1)
 
-hidden_out2 = tf.add(tf.matmul(hidden_out1, W2), b2)
-hidden_out2 = tf.nn.relu(hidden_out2)
+#hidden_out2 = tf.add(tf.matmul(hidden_out1, W2), b2)
+#hidden_out2 = tf.nn.relu(hidden_out2)
 
-hidden_out3 = tf.add(tf.matmul(hidden_out2, W3), b3)
-hidden_out3 = tf.nn.relu(hidden_out3)
+#hidden_out3 = tf.add(tf.matmul(hidden_out2, W3), b3)
+#hidden_out3 = tf.nn.relu(hidden_out3)
 
-hidden_out4 = tf.add(tf.matmul(hidden_out3, W4), b4)
-hidden_out4 = tf.nn.relu(hidden_out4)
+#hidden_out4 = tf.add(tf.matmul(hidden_out3, W4), b4)
+#hidden_out4 = tf.nn.relu(hidden_out4)
 
-y_pred = tf.add(tf.matmul(hidden_out4, W5), b5)
+y_pred = tf.add(tf.matmul(hidden_out1, W2), b2)
 
 # loss = tf.nn.l2_loss(y_pred - y) # / (len(myDataSet.allInstances))
 loss = tf.reduce_mean(tf.square(y_pred - y))
@@ -249,7 +249,7 @@ saver = tf.train.Saver()
 
 
 # Train on the training set
-epochs = 100
+epochs = 4000
 with tf.Session() as sess:
 
     # Initialize the variables
@@ -322,19 +322,23 @@ with tf.Session() as sess:
     w = 10
     h = 10
     fig = plt.figure(figsize = (8, 8))
-    columns = 2
+    columns = 3
     rows = 1
     ax1 = fig.add_subplot(rows, columns, 1)
-    plt.gca().axes.get_xaxis().set_visible(False)
-    plt.gca().axes.get_yaxis().set_visible(False)
+    ax1.set_yticklabels([])
+    ax1.set_xticklabels([])
     plt.imshow(F_Z)
+    ax1.set_ylabel('β')
+    ax1.set_xlabel('γ')
     ax1.title.set_text('α_Z')
     plt.colorbar()
-    
-    ax2 = fig.add_subplot(rows, columns, 2)
-    plt.gca().axes.get_xaxis().set_visible(False)
-    plt.gca().axes.get_yaxis().set_visible(False)
+
+    ax2 = fig.add_subplot(rows, columns, 3)
+    ax2.set_yticklabels([])
+    ax2.set_xticklabels([])
     plt.imshow(F_X)
+    ax2.set_ylabel('β')
+    ax2.set_xlabel('γ')
     ax2.title.set_text('α_X')
     
     plt.colorbar()
