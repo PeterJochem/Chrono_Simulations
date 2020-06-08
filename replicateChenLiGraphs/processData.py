@@ -249,7 +249,7 @@ saver = tf.train.Saver()
 
 
 # Train on the training set
-epochs = 20000
+epochs = 100
 with tf.Session() as sess:
 
     # Initialize the variables
@@ -325,11 +325,15 @@ with tf.Session() as sess:
     columns = 2
     rows = 1
     ax1 = fig.add_subplot(rows, columns, 1)
+    plt.gca().axes.get_xaxis().set_visible(False)
+    plt.gca().axes.get_yaxis().set_visible(False)
     plt.imshow(F_Z)
     ax1.title.set_text('α_Z')
     plt.colorbar()
-
+    
     ax2 = fig.add_subplot(rows, columns, 2)
+    plt.gca().axes.get_xaxis().set_visible(False)
+    plt.gca().axes.get_yaxis().set_visible(False)
     plt.imshow(F_X)
     ax2.title.set_text('α_X')
     
